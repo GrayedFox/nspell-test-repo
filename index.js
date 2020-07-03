@@ -7,9 +7,10 @@ const LANGUAGES_LENGTH = 3
 
 const userDicts = []
 const languageCodes = [] // 'de-de', 'en-en', 'nl-nl' populated in order
-const customWords = ['kablam', 'geluk', 'brot']
+const customWords = ['zeit', 'kablam', 'geluk', 'brot']
 
 // Custom Words:
+// - zeit is misspelt in all three languages; in German it is a noun and should thus be "Zeit"
 // - kablam is misspelt in all three languages
 // - geluk is misspelt in English and German but is a valid Dutch word
 // - brot is misspelt in all three languages; in German it is a noun and should thus be "Brot"
@@ -82,11 +83,13 @@ function loadDict (dictionary, languageCode) {
     if (userDicts.length === LANGUAGES_LENGTH) {
       console.log('instantiating user, please wait...')
       const user = new User(userDicts, languageCodes, customWords)
-      // first remove brot from user.ownWords so we can add it back to custom words
-      user.removeWord(customWords[2])
-      // add brot to user.ownWords -- now it is properly added and marked as correct
+      // first remove brot and zeit from user.ownWords so we can add it back to custom words
+      user.removeWord(customWords[0])
+      user.removeWord(customWords[3])
+      // add zeit and brot to user.ownWords -- now it is properly added and marked as correct
       console.log('\n ADD WORD via user.addWord')
-      user.addWord(customWords[2])
+      user.addWord(customWords[0])
+      user.addWord(customWords[3])
     }
   })
 }
