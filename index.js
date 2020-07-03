@@ -1,16 +1,18 @@
 const nspell = require('nspell')
+
 const dictionaryDe = require('dictionary-de')
 const dictionaryEn = require('dictionary-en')
 const dictionaryNl = require('dictionary-nl')
+const LANGUAGES_LENGTH = 3
 
 const userDicts = []
-const languageCodes = ['de-de', 'en-en', 'nl-nl']
-const customWords = ['kablam', 'brot', 'geluk']
+const languageCodes = [] // 'de-de', 'en-en', 'nl-nl' populated in order
+const customWords = ['kablam', 'geluk', 'brot']
 
 // Custom Words:
 // - kablam is misspelt in all three languages
-// - brot is misspelt in all three languages; in German it is a noun and should thus be "Brot"
 // - geluk is misspelt in English and German but is a valid Dutch word
+// - brot is misspelt in all three languages; in German it is a noun and should thus be "Brot"
 
 // A User needs dictionaries,langauges, and optionally some custom words
 class User {
@@ -38,7 +40,7 @@ class User {
         if (misspelt !== speller.correct(word)) {
           console.log('\x1b[31m%s\x1b[0m', `${word} still incorrect!`)
         } else {
-          console.log('\x1b[42m%s\x1b[0m',`${word} is now correct`)
+          console.log('\x1b[32m%s\x1b[0m',`${word} is now correct`)
         }
         misspeltLangs.push(language)
       }
@@ -71,28 +73,30 @@ class User {
   }
 }
 
-const onDictionary = (err, dict) => {
-  if (err) {
-    throw err
-  }
-  userDicts.push(dict)
-
-  if (userDicts.length === 3) {
-    console.log('instantiating user, please wait...')
-    const user = new User(userDicts, languageCodes, customWords)
-    // remove brot from user.ownWords
-    console.log('\n REMOVE WORD via user.removeWord')
-    user.removeWord(customWords[1])
-    // add brot to user.ownWords
-    console.log('\n ADD WORD via user.addWord')
-    user.addWord(customWords[1])
-  }
+// wrap dictionary functions so we can populate languageCodes in order of dictionaries loaded
+// (dictionary callbacks return error or dictionary only)
+function loadDict (dictionary, languageCode) {
+  dictionary((err, dict) => {
+    userDicts.push(dict)
+    languageCodes.push(languageCode)
+    if (userDicts.length === LANGUAGES_LENGTH) {
+      // if we move the elements in the array around we get different results, uncomment to test
+      // userDicts.unshift(userDicts.pop())
+      console.log('instantiating user, please wait...')
+      const user = new User(userDicts, languageCodes, customWords)
+      // first remove brot from user.ownWords so we can add it back to custom words
+      user.removeWord(customWords[1])
+      // add brot to user.ownWords -- now it is properly added and marked as correct
+      console.log('\n ADD WORD via user.addWord')
+      user.addWord(customWords[1])
+    }
+  })
 }
 
 function main () {
-  dictionaryEn(onDictionary)
-  dictionaryDe(onDictionary)
-  dictionaryNl(onDictionary)
+  loadDict(dictionaryDe, 'de-de')
+  loadDict(dictionaryEn, 'en-en')
+  loadDict(dictionaryNl, 'nl-nl')
 }
 
 main()
