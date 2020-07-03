@@ -1,0 +1,22 @@
+{
+  "name": "nspell-test-repo",
+  "version": "1.0.0",
+  "description": "`npm install`",
+  "main": "index.js",
+  "dependencies": {
+    "dictionary-de": "^2.0.4",
+    "dictionary-en": "^3.0.1",
+    "dictionary-nl": "^1.3.4",
+    "nspell": "^2.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "nspell-test-repo"
+  },
+  "author": "",
+  "license": "MIT"
+}
