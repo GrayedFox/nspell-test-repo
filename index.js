@@ -80,15 +80,13 @@ function loadDict (dictionary, languageCode) {
     userDicts.push(dict)
     languageCodes.push(languageCode)
     if (userDicts.length === LANGUAGES_LENGTH) {
-      // if we move the elements in the array around we get different results, uncomment to test
-      // userDicts.unshift(userDicts.pop())
       console.log('instantiating user, please wait...')
       const user = new User(userDicts, languageCodes, customWords)
       // first remove brot from user.ownWords so we can add it back to custom words
-      user.removeWord(customWords[1])
+      user.removeWord(customWords[2])
       // add brot to user.ownWords -- now it is properly added and marked as correct
       console.log('\n ADD WORD via user.addWord')
-      user.addWord(customWords[1])
+      user.addWord(customWords[2])
     }
   })
 }
