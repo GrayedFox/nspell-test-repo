@@ -10,7 +10,11 @@ function onload (err, dictionary) {
   if (!spell.correct('zeit')) console.log('\x1b[31m%s\x1b[0m', `"zeit" still incorrect!`)
   spell.remove('zeit')
   spell.add('zeit')
-  if (spell.correct('zeit')) console.log('\x1b[32m%s\x1b[0m',`"zeit" is now correct`)
+  if (spell.correct('zeit')) console.log('\x1b[32m%s\x1b[0m',`"zeit" is now correct (after removing and then adding it again)`)
+
+  spell.correct('kablam')
+  spell.add('kablam')
+  if (spell.correct('kablam')) console.log('\x1b[32m%s\x1b[0m',`"kablam" is now correct`)
 }
 
 dictionaryDe(onload)
