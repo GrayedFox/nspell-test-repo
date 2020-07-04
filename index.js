@@ -1,128 +1,16 @@
 const nspell = require('nspell')
-
 const dictionaryDe = require('dictionary-de')
-// const dictionaryEn = require('dictionary-en')
-// const dictionaryNl = require('dictionary-nl')
-const LANGUAGES_LENGTH = 1 // adjust to match num dictionaries
-
-const userDicts = []
-const languageCodes = [] // 'de-de', 'en-en', 'nl-nl' populated in order
-const customWords = ['zeit', 'kablam', 'geluk', 'brot']
-
-// Custom Words:
-// - zeit is misspelt in all three languages; in German it is a noun and should thus be "Zeit"
-// - kablam is misspelt in all three languages
-// - geluk is misspelt in English and German but is a valid Dutch word
-// - brot is misspelt in all three languages; in German it is a noun and should thus be "Brot"
-
-// A User needs dictionaries,langauges, and optionally some custom words
-class User {
-  constructor (dictionaries, languages, ownWords) {
-    this.dicts = dictionaries // array of dictionaries [{ aff: '', dic: '' }]
-    this.langs = languages // array of in use langauge codes ['de-de', 'en-au', 'nl-nl']
-    this.ownWords = ownWords // array of custom words: ['kablam', 'brot', 'geluk']
-    this.spellers = this._createSpellers() // nspell instances by language { 'de-de': nspell }
-  }
-
-  /**
-   * addWord - add a word to user.ownWords and update existing spell checker instances. This method
-   * only adds words to dictionaries where the word is misspelt in (so it would not add "geluk" to
-   * the Dutch dictionary, for example).
-   *
-   * @param  {type} word description
-   * @returns {type}      description
-   */
-
-  addWord (word) {
-    const misspeltLangs = []
-    this.langs.forEach(language => {
-      const speller = this.spellers[language]
-      const misspelt = !speller.correct(word)
-      console.log(`\n"${word}" correct in "${language}": ${speller.correct(word)}`)
-      if (misspelt) {
-        console.log(`adding ${word} to ${language}`)
-        speller.add(word)
-        // we should never be able to enter this if since after adding a word it should now be
-        // marked as correct in that language
-        if (!speller.correct(word)) {
-          console.log('\x1b[31m%s\x1b[0m', `${word} still incorrect!`)
-        } else {
-          console.log('\x1b[32m%s\x1b[0m',`${word} is now correct`)
-        }
-        misspeltLangs.push(language)
-      }
-    })
-    if (misspeltLangs.length > 0) { this.ownWords[word] = misspeltLangs }
-  }
-
-  /**
-   * removeWord - removes a word from user.ownWords and from nspell instances, but only from the
-   * languages it is misspelt in
-   *
-   * @param  {string} word word to remove from user.
-   * @returns {undefined}
-   */
-
-  removeWord (word) {
-    this.ownWords[word].forEach(language => {
-      if (this.spellers[language]) {
-        this.spellers[language].remove(word)
-        console.log(`\nREMOVING WORD "${word}" from "${language}"`)
-      }
-    })
-    delete this.ownWords[word]
-  }
-
-  /**
-   * _createSpellers - creates key value pair nspell instances. This should only ever be called
-   * during class instantiation. this.spellers will be an object of langauge keys that contain
-   * spellers, i.e. { 'de-de': nspell, 'en-en': nspell, 'nl-nl': nspell }
-   *
-   * @returns {undefined}
-   */
-
-  _createSpellers () {
-    this.spellers = {}
-
-    // create nspell instances based on dictionaries
-    for (let i = 0; i < this.dicts.length; i++) {
-      this.spellers[this.langs[i]] = nspell(this.dicts[i])
-    }
-    // add custom words to each dictionary by calling addWord during class instantiation
-    if (this.ownWords.length > 0) {
-      this.ownWords.forEach((word) => { this.addWord(word) })
-    }
-
-    return this.spellers
-  }
-}
 
 // wrap dictionary functions so we can populate languageCodes in order of dictionaries loaded
 // (dictionary callbacks return error or dictionary only)
-function loadDict (dictionary, languageCode) {
-  dictionary((err, dict) => {
-    userDicts.push(dict)
-    languageCodes.push(languageCode)
-    if (userDicts.length === LANGUAGES_LENGTH) {
-      console.log('instantiating user, please wait...')
-      const user = new User(userDicts, languageCodes, customWords)
-      console.log('own words: ', user.ownWords)
-      // first remove brot and zeit from user.ownWords so we can add it back to custom words.
-      // Uncomment these lines will prevent "zeit" und "brot" from ever being added correctly
-      user.removeWord(customWords[0])
-      user.removeWord(customWords[3])
-      // add zeit and brot to user.ownWords -- now it is properly added and marked as correct
-      console.log('\n ADD WORD via user.addWord')
-      user.addWord(customWords[0])
-      user.addWord(customWords[3])
-    }
-  })
+function onload (err, dictionary) {
+  const spell = nspell(dictionary)
+  spell.correct('zeit')
+  spell.add('zeit')
+  if (!spell.correct('zeit')) console.log('\x1b[31m%s\x1b[0m', `"zeit" still incorrect!`)
+  spell.remove('zeit')
+  spell.add('zeit')
+  if (spell.correct('zeit')) console.log('\x1b[32m%s\x1b[0m',`"zeit" is now correct`)
 }
 
-function main () {
-  loadDict(dictionaryDe, 'de-de')
-  // loadDict(dictionaryEn, 'en-en')
-  // loadDict(dictionaryNl, 'nl-nl')
-}
-
-main()
+dictionaryDe(onload)
